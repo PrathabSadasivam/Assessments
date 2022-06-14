@@ -40,7 +40,7 @@ public class PersonController {
 	@PostMapping(value = "/createPerson")
 	public String createPerson(@RequestBody String person) throws ParseException {
 		Resource resource = new ClassPathResource("persons.csv");
-		String id = StringUtils.EMPTY;
+		String id = "0";
 		boolean flag = true;
 		try {
 			CSVWriter writer = new CSVWriter(new FileWriter(resource.getFile().getAbsolutePath(), true));
@@ -57,7 +57,7 @@ public class PersonController {
 				if (flag && fieldName.equalsIgnoreCase("Email")) {
 					flag = Pattern.compile("^(.+)@(\\S+)$").matcher((String) json.get(fieldName)).matches();
 				}
-				if (fieldName.equalsIgnoreCase("id")) {
+				if (flag && fieldName.equalsIgnoreCase("id")) {
 					id = System.currentTimeMillis() + "";
 					record[i++] = id;
 				} else {
@@ -107,7 +107,11 @@ public class PersonController {
 					JsonFields jsonField = configsService.getJosnFieldNameFromConfig(fieldNames.get(i));
 					if (jsonField != null) {
 						if (jsonField.getType().equalsIgnoreCase("Int") && StringUtils.isNumeric(x.get(i))) {
-							obj.put(jsonField.getJson_attr(), Integer.parseInt(x.get(i)));
+							int intValue = Integer.parseInt(x.get(i));
+							if(StringUtils.isBlank(reqId) && "Age".equalsIgnoreCase(fieldNames.get(i)) && intValue < 35) {
+								addToList = false;
+							}
+							obj.put(jsonField.getJson_attr(), intValue);
 						} else {
 							obj.put(jsonField.getJson_attr(), x.get(i));
 						}
